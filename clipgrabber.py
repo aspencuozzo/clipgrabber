@@ -22,7 +22,7 @@ def interactive_tui():
     while (using_tool):
         broadcaster_id = broadcaster_id_interactive(client_id, oauth_token)
         date_range = get_dates_interactive()
-        grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range)
+        retrieve_clips_interactive(client_id, oauth_token, broadcaster_id, date_range)
         using_tool = Confirm.ask("Would you like to retrieve more clips?")
     console.print("Thank you for using clipgrabber!", style='bold #000080')
 
@@ -38,7 +38,7 @@ def auth_interactive():
     return client_id, oauth_token
 
 def broadcaster_id_interactive(client_id, oauth_token):
-    broadcaster_name = Prompt.ask("Enter the name of the channel you would like to grab clips of")
+    broadcaster_name = Prompt.ask("Enter the name of the channel you would like to retrieve clips of")
     broadcaster_id = get_broadcaster_id(client_id, oauth_token, broadcaster_name)
     if broadcaster_id is None:
         console.print("Twitch channel not found. Please try again.\n", style="bold red")
@@ -51,7 +51,7 @@ def get_dates_interactive():
     today_start = datetime.now().replace(hour=0, minute=0, second=0)
     today_end = datetime.now().replace(hour=23, minute=59, second=59)
     date_range_choices = ["today", "yesterday", "this week", "this month", "this year", "custom range"]
-    date_range = Prompt.ask("How far back would you like to grab clips?", choices=date_range_choices)
+    date_range = Prompt.ask("How far back would you like to retrieve clips?", choices=date_range_choices)
     if date_range != "custom range":
         end_date = datetime.now().replace(hour=23, minute=59, second=59)
         match date_range:
@@ -94,7 +94,7 @@ def get_dates_interactive():
                 console.print("Invalid date. Please ensure it is formatted correctly.\n", style="bold red")
     return start_date, end_date
 
-def grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range):
+def retrieve_clips_interactive(client_id, oauth_token, broadcaster_id, date_range):
     output_file = None
     
     while output_file is None:
@@ -108,8 +108,8 @@ def grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range):
     sort_choices = ["oldest", "newest", "popular", "unpopular"]
     sort_order = Prompt.ask("How would you like to sort the clips in the file?", choices=sort_choices, default="oldest")
 
-    with console.status("[bold blue]Grabbing clips"):
-        clips = grab_clips(client_id, oauth_token, broadcaster_id, date_range)
+    with console.status("[bold blue]Retrieving clips"):
+        clips = retrieve_clips(client_id, oauth_token, broadcaster_id, date_range)
 
     clips = sort_clips(clips, sort_order)
     write_to_file(clips, output_file)
@@ -139,8 +139,8 @@ def get_broadcaster_id(client_id, oauth_token, broadcaster_name):
     else:
         return str(r.json()['data'][0]['id'])
 
-# Iterative function to grab all clips with specified filters
-def grab_clips(client_id, oauth_token, broadcaster_id, date_range):
+# Iterative function to retrieve all clips with specified filters
+def retrieve_clips(client_id, oauth_token, broadcaster_id, date_range):
     cursor = ""
     clips = []
     started_at = date_range[0]
