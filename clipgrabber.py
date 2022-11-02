@@ -14,13 +14,17 @@ console = Console()
 # ----------- #
 
 def interactive_tui():
+    using_tool = True
     console.print("\nWelcome to clipgrabber! (v0.0.2)", style='bold #000080', highlight=False)
     user_info = auth_interactive()
     client_id = user_info[0]
     oauth_token = user_info[1]
-    broadcaster_id = broadcaster_id_interactive(client_id, oauth_token)
-    date_range = get_dates_interactive()
-    grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range)
+    while (using_tool):
+        broadcaster_id = broadcaster_id_interactive(client_id, oauth_token)
+        date_range = get_dates_interactive()
+        grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range)
+        using_tool = Confirm.ask("Would you like to retrieve more clips?")
+    console.print("Thank you for using clipgrabber!", style='bold #000080')
 
 def auth_interactive():
     oauth_token = None
@@ -44,23 +48,24 @@ def broadcaster_id_interactive(client_id, oauth_token):
 def get_dates_interactive():
     start_date = None
     end_date = None
+    today_start = datetime.now().replace(hour=0, minute=0, second=0)
+    today_end = datetime.now().replace(hour=23, minute=59, second=59)
     date_range_choices = ["today", "yesterday", "this week", "this month", "this year", "custom range"]
     date_range = Prompt.ask("How far back would you like to grab clips?", choices=date_range_choices)
     if date_range != "custom range":
         end_date = datetime.now().replace(hour=23, minute=59, second=59)
-        today_midnight = datetime.now().replace(hour=0, minute=0, second=0)
         match date_range:
             case "today":
                 start_date = datetime.now()
             case "yesterday":
-                start_date = today_midnight - relativedelta(days = 1)
-                end_date = today_midnight
+                start_date = today_start - relativedelta(days = 1)
+                end_date = today_start
             case "this week":
-                start_date = today_midnight - relativedelta(weeks = 1)
+                start_date = today_start - relativedelta(weeks = 1)
             case "this month":
-                start_date = today_midnight.replace(day = 1)
+                start_date = today_start.replace(day = 1)
             case "this year":
-                start_date = today_midnight.replace(day = 1, month = 1)
+                start_date = today_start.replace(day = 1, month = 1)
 
         start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
         end_date = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -70,7 +75,7 @@ def get_dates_interactive():
             try:
                 input_start_date = Prompt.ask("Enter the starting date (YYYY-MM-DD)")
                 parsed_start_date = (parse(input_start_date, yearfirst=True)).replace(hour=0, minute=0, second=0)
-                if (parsed_start_date > datetime.now()):
+                if (parsed_start_date > today_end):
                     raise ValueError("Date is in the future")
                 else:
                     start_date = parsed_start_date
@@ -80,9 +85,7 @@ def get_dates_interactive():
             try:
                 input_end_date = Prompt.ask("Enter the ending date (YYYY-MM-DD)")
                 parsed_end_date = (parse(input_end_date, yearfirst=True)).replace(hour=23, minute=59, second=59)
-                if (parsed_end_date > datetime.now()):
-                    raise ValueError("Date is in the future")
-                elif (parsed_end_date < start_date):
+                if (parsed_end_date < start_date):
                     raise ValueError("End date is earlier than start date")
                 else:
                     start_date = parsed_start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
