@@ -9,6 +9,10 @@ from rich.prompt import Prompt, Confirm
 
 console = Console()
 
+# ----------- #
+# Interactive #
+# ----------- #
+
 def interactive_tui():
     console.print("\nWelcome to clipgrabber! (v0.0.1)", style='#000080', highlight=False)
     user_info = auth_interactive()
@@ -98,6 +102,11 @@ def grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range):
     console.print("All done! " + str(len(clips)) + " clips were retrieved and sent to " + output_file.name, style="green")
     console.line()
 
+# ----------- #
+#     API     #
+# ----------- #     
+
+# Obtain oauth token with client_id and client_secret
 def client_creds_auth(client_id, client_secret):
     params = {'client_id': client_id, 'client_secret': client_secret, 'grant_type': 'client_credentials'}
     r = requests.post(url = "https://id.twitch.tv/oauth2/token", params = params)
@@ -106,6 +115,7 @@ def client_creds_auth(client_id, client_secret):
     else:
         return None
 
+# Get broadcaster_id from broadcaster_name
 def get_broadcaster_id(client_id, oauth_token, broadcaster_name):
     headers = {'Authorization': 'Bearer ' + oauth_token, 'Client-Id': client_id}
     params = {'login': broadcaster_name}
@@ -115,6 +125,7 @@ def get_broadcaster_id(client_id, oauth_token, broadcaster_name):
     else:
         return str(r.json()['data'][0]['id'])
 
+# Iterative function to grab all clips with specified filters
 def grab_clips(client_id, oauth_token, broadcaster_id, date_range):
     cursor = ""
     clips = []
@@ -142,6 +153,7 @@ def grab_clips(client_id, oauth_token, broadcaster_id, date_range):
     
     return clips
 
+# Sort clips by specified order before we write them to file
 def sort_clips(clips, order):
     match order:
         case "oldest":
@@ -152,6 +164,7 @@ def sort_clips(clips, order):
             clips.reverse()
     return clips
 
+# Attempt to open file before `writing` to ensure we have permission
 def open_file(fname):
     try:
         file = open(fname, "w")
@@ -159,10 +172,14 @@ def open_file(fname):
     except OSError:
         return None
 
+# Write to specified file (only runs once we have confirmed permission)
 def write_to_file(clips, file):
     for clip in clips:
         file.write(clip['url'] + '\n')
     file.close()
 
+# ---------- #
+#    Main    #
+# ---------- #     
 if __name__ == "__main__":
     interactive_tui()
