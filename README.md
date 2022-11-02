@@ -10,4 +10,4 @@ clipgrabber is a TUI (text user interface) written in Python that allows you to 
 
 ## Usage
 `python3 -m pip install -r requirements.txt`\
-`python3 clipgrapper.py`
+`python3 clipgrabber.py`
