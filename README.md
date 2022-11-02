@@ -1,7 +1,7 @@
 # clipgrabber
 clipgrabber is a TUI (text user interface) written in Python that allows you to batch retrieve links to clips made of a Twitch channel and send them to a text file.
 
-**Note:** clipgrabber is in early alpha, and although it works in a basic form there are bugs to be fixed and features to be added. This project is in active development.
+**Note:** clipgrabber is in alpha — there are features to be added, and likely bugs to be fixed. Please create an issue on the repository for any feature requests or bugs found.
 
 ## Requirements
 - Python 3.10 or later

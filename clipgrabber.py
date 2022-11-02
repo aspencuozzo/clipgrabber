@@ -14,7 +14,7 @@ console = Console()
 # ----------- #
 
 def interactive_tui():
-    console.print("\nWelcome to clipgrabber! (v0.0.1)", style='#000080', highlight=False)
+    console.print("\nWelcome to clipgrabber! (v0.0.2)", style='bold #000080', highlight=False)
     user_info = auth_interactive()
     client_id = user_info[0]
     oauth_token = user_info[1]
@@ -23,21 +23,21 @@ def interactive_tui():
     grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range)
 
 def auth_interactive():
-    client_id = Prompt.ask("Enter your Twitch application Client ID")
-    client_secret = Prompt.ask("Enter your Twitch application Client Secret (hidden for privacy)", password=True)
-    oauth_token = client_creds_auth(client_id, client_secret)
-    if oauth_token is None:
-        console.print("Your Twitch credentials are invalid. Please try again.\n", style="red")
-        auth_interactive()
-    else:
-        console.print("Authentication successful!\n", style="green")
-        return client_id, oauth_token
+    oauth_token = None
+    while oauth_token is None:
+        client_id = Prompt.ask("Enter your Twitch application Client ID")
+        client_secret = Prompt.ask("Enter your Twitch application Client Secret (hidden for privacy)", password=True)
+        oauth_token = client_creds_auth(client_id, client_secret)
+        if (oauth_token is None):
+            console.print("Your Twitch credentials are invalid. Please try again.\n", style="bold red")
+    console.print("Authentication successful!\n", style="bold green")
+    return client_id, oauth_token
 
 def broadcaster_id_interactive(client_id, oauth_token):
     broadcaster_name = Prompt.ask("Enter the name of the channel you would like to grab clips of")
     broadcaster_id = get_broadcaster_id(client_id, oauth_token, broadcaster_name)
     if broadcaster_id is None:
-        console.print("Twitch channel not found. Please try again.\n", style="red")
+        console.print("Twitch channel not found. Please try again.\n", style="bold red")
     else:
         return broadcaster_id
 
@@ -47,45 +47,53 @@ def get_dates_interactive():
     date_range_choices = ["today", "yesterday", "this week", "this month", "this year", "custom range"]
     date_range = Prompt.ask("How far back would you like to grab clips?", choices=date_range_choices)
     if date_range != "custom range":
-        end_date = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_date = datetime.now().replace(hour=23, minute=59, second=59)
+        today_midnight = datetime.now().replace(hour=0, minute=0, second=0)
         match date_range:
             case "today":
-                start_date = date.today().strftime("%Y-%m-%dT%H:%M:%SZ")
+                start_date = datetime.now()
             case "yesterday":
-                start_date = (date.today() - relativedelta(days = 1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                start_date = today_midnight - relativedelta(days = 1)
+                end_date = today_midnight
             case "this week":
-                start_date = (date.today() - relativedelta(weeks = 1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                start_date = today_midnight - relativedelta(weeks = 1)
             case "this month":
-                start_date = (date.today() - relativedelta(months = 1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                start_date = today_midnight.replace(day = 1)
             case "this year":
-                start_date = (date.today() - relativedelta(years = 1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                start_date = today_midnight.replace(day = 1, month = 1)
+
+        start_date = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_date = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
     else:
         while start_date is None:
             try:
                 input_start_date = Prompt.ask("Enter the starting date (YYYY-MM-DD)")
-                parsed_start_date = parse(input_start_date, yearfirst=True)
-                if (parsed_start_date > date.today()):
+                parsed_start_date = (parse(input_start_date, yearfirst=True)).replace(hour=0, minute=0, second=0)
+                if (parsed_start_date > datetime.now()):
                     raise ValueError("Date is in the future")
                 else:
-                    start_date = input_start_date
+                    start_date = parsed_start_date
             except ValueError:
-                console.print("Invalid date. Please ensure it is formatted correctly.\n", style="red")
+                console.print("Invalid date. Please ensure it is formatted correctly.\n", style="bold red")
         while end_date is None:
             try:
                 input_end_date = Prompt.ask("Enter the ending date (YYYY-MM-DD)")
-                parsed_end_date = parse(input_end_date, yearfirst=True)
-                if (parsed_end_date > date.today()):
+                parsed_end_date = (parse(input_end_date, yearfirst=True)).replace(hour=23, minute=59, second=59)
+                if (parsed_end_date > datetime.now()):
                     raise ValueError("Date is in the future")
-                elif (parsed_end_date > start_date):
-                    raise ValueError("End date is later than start date")
+                elif (parsed_end_date < start_date):
+                    raise ValueError("End date is earlier than start date")
                 else:
-                    end_date = input_end_date
+                    start_date = parsed_start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+                    end_date = parsed_end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
             except ValueError:
-                console.print("Invalid date. Please ensure it is formatted correctly.\n", style="red")
+                console.print("Invalid date. Please ensure it is formatted correctly.\n", style="bold red")
     return start_date, end_date
 
 def grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range):
     output_file = None
+    
     while output_file is None:
         fname = Prompt.ask("What would you like to name the file?", default="clips.txt")
         if not fname.endswith(".txt"):
@@ -94,12 +102,15 @@ def grab_clips_interactive(client_id, oauth_token, broadcaster_id, date_range):
         if (output_file is None):
             console.print("Could not open/write to file. Please try again.\n", style="red")
         
-    sort_choices = ["oldest", "newest"]
+    sort_choices = ["oldest", "newest", "popular", "unpopular"]
     sort_order = Prompt.ask("How would you like to sort the clips in the file?", choices=sort_choices, default="oldest")
-    clips = grab_clips(client_id, oauth_token, broadcaster_id, date_range)
+
+    with console.status("[bold blue]Grabbing clips"):
+        clips = grab_clips(client_id, oauth_token, broadcaster_id, date_range)
+
     clips = sort_clips(clips, sort_order)
     write_to_file(clips, output_file)
-    console.print("All done! " + str(len(clips)) + " clips were retrieved and sent to " + output_file.name, style="green")
+    console.print("All done! " + str(len(clips)) + " clips were retrieved and sent to " + output_file.name, style="bold green")
     console.line()
 
 # ----------- #
