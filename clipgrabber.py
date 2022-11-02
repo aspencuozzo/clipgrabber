@@ -156,7 +156,6 @@ def grab_clips(client_id, oauth_token, broadcaster_id, date_range):
         try:
             clips += r.json()['data']
         except KeyError:
-            console.log("Info dump\nParams: " + str(params) + "\nResponse " + str(r.status_code))
             return clips
         # Once we reach the end of the clips
         try:
