@@ -16,7 +16,7 @@ console = Console()
 
 def interactive_tui():
     using_tool = True
-    console.print("\nWelcome to clipgrabber! (v0.1.0)", style='bold #000080', highlight=False)
+    console.print("\nWelcome to clipgrabber! (v1.0.0)", style='bold #000080', highlight=False)
     user_info = auth_interactive()
     client_id = user_info[0]
     oauth_token = user_info[1]
