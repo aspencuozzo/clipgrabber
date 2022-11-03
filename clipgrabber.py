@@ -274,7 +274,7 @@ def sort_clips(clips, order):
             clips.reverse()
     return clips
 
-# Attempt to open file before `writing` to ensure we have permission
+# Attempt to open file before accessing to ensure we have permission
 def open_file(fname, perms):
     try:
         file = open(fname, perms)
