@@ -22,6 +22,6 @@ The tool will guide you through the clip retreival process step-by-step. Please 
 Note: clipgrabber searches for the dates the *clips* were created, not the dates of the source streams. Twitch does not expose that info in the API - it is possible to get it from the `video_id` returned, but this happens only if a clip's source VOD is still available. VODs are stored for a maximum of two months (60 days for partners, Turbo and Prime users; 14 days for affiliates; 7 days for others), so this would probably not be a very useful filter to add.
 
 ### Easier authentication
-I have added a feature where the tool will autoload your credentials if you have them saved in a `credentials.json` file located in the same place you are running the tool from. There is an example file in the repository with the specific formatting you must use. (If you use the example file directly, make sure to rename it to simply `credentials.json`.)
+I have added a feature where the tool will autoload your credentials if you have them saved in a `credentials.json` file located in the same directory you are running the tool from. There is an example file in the repository with the specific formatting you must use. (If you use the example file directly, make sure to rename it to simply `credentials.json`.)
 
 Please keep in mind that this is obviously not secure, as if an attacker were to ever get into your computer they could easily steal your client secret. Unlike oauth tokens, client secrets do not expire. Use this feature at your own risk.
