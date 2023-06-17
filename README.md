@@ -9,7 +9,7 @@ clipgrabber is a powerful search tool for Twitch clips written in Python that al
 - rich 12.6.0 or later
 
 ## Usage
-Clone this repository or go to the [latest release](https://github.com/aspensykes/clipgrabber/releases/latest), download and unzip the source code. Open your computer's terminal in the folder created. Ensure Python 3.10 or later is installed (`python3 -v`). Run the following:
+Clone this repository or go to the [latest release](https://github.com/aspensykes/clipgrabber/releases/latest), download and unzip the source code. Open your computer's terminal in the folder created. Ensure Python 3.10 or later is installed (`python3 -V`). Run the following:
 
 `python3 -m pip install -r requirements.txt`\
 `python3 clipgrabber.py`
